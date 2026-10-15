@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Regulatory
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:REGULATORY service binary — multi-jurisdiction regulatory reporting.
+//! Exchange8:REGULATORY service binary — multi-jurisdiction regulatory reporting.
 //!
 //! Design: `design/sentin8-exchange8-regulatory-technical-design.md` (see the
 //! service doc for the exact file). Core logic in the sibling modules;

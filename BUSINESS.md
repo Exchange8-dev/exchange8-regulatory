@@ -1,7 +1,7 @@
-# BUSINESS.md: Ex8:Regulatory — Business Requirements & Functionality
+# BUSINESS.md: Exchange8:Regulatory — Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
-> Ex8:Regulatory **does for the business**. For architecture read `README.md`;
+> Exchange8:Regulatory **does for the business**. For architecture read `README.md`;
 > for wire-level detail read `DESIGN.md`.
 
 ## 1. Business Purpose
@@ -43,12 +43,12 @@
 
 | Concern | Owner |
 |---|---|
-| Order and trade events feeding the reports | Ex8:ME / Ex8:OMS / Ex8:Clearing |
-| Quote events feeding the reports | Ex8:MD |
-| Market-abuse detection and MAR analysis | Ex8:Surveillance |
+| Order and trade events feeding the reports | Exchange8:ME / Exchange8:OMS / Exchange8:Clearing |
+| Quote events feeding the reports | Exchange8:MD |
+| Market-abuse detection and MAR analysis | Exchange8:Surveillance |
 | Transport sessions to regulators (FIX sessions, API clients, SFTP drops) | Regime transport adapters (connectivity layer) |
-| Securities/derivatives reference data | Ex8:RefData |
-| Clearing and settlement of the reported trades | Ex8:Clearing / Ex8:Settlement |
+| Securities/derivatives reference data | Exchange8:RefData |
+| Clearing and settlement of the reported trades | Exchange8:Clearing / Exchange8:Settlement |
 | Fiat money movement | Bank8:Ledger |
 | Identity, tokens, M2M client registration | Sentin8:Auth |
 | Message delivery between services | Sentin8:Bus |
@@ -177,11 +177,11 @@ transports.
 
 | Dependency | What the business relies on it for |
 |---|---|
-| Ex8:ME / Ex8:OMS | Order events (new, modify, cancel) that become reportable order activity |
-| Ex8:Clearing | Trade events that become transaction reports |
-| Ex8:MD | Quote events feeding quote-reporting regimes |
-| Ex8:Surveillance | Market-abuse findings that contextualize regulatory output |
-| Ex8:RefData | Instrument reference data the reported instruments resolve against |
+| Exchange8:ME / Exchange8:OMS | Order events (new, modify, cancel) that become reportable order activity |
+| Exchange8:Clearing | Trade events that become transaction reports |
+| Exchange8:MD | Quote events feeding quote-reporting regimes |
+| Exchange8:Surveillance | Market-abuse findings that contextualize regulatory output |
+| Exchange8:RefData | Instrument reference data the reported instruments resolve against |
 | Sentin8:Auth | Identity issuance, M2M client credentials (certificate-bound), admin token verification |
 | Sentin8:Bus | Durable, idempotent event delivery for reporting outcomes (outbox producer pattern) |
 | Sentin8:Sys | Audit intake (`POST /v1/audit`) and hostname resolution for ingress |

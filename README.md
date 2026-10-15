@@ -1,8 +1,8 @@
-# README.md: Ex8:Regulatory
+# README.md: Exchange8:Regulatory
 
 ## 1. Summary
 
-Ex8:Regulatory is the **multi-jurisdiction regulatory reporting** service of
+Exchange8:Regulatory is the **multi-jurisdiction regulatory reporting** service of
 the exchange8 vertical: reportable order, trade and quote activity is
 normalized into a single event shape, fanned out to every reporting
 jurisdiction configured for the environment (IIROC/FIXROC, US Reg
@@ -55,10 +55,10 @@ consumer drives:
 ```mermaid
 graph TD
     subgraph producers["Producers (exchange8 vertical)"]
-        ME["Ex8:ME (order events)"]
-        OMS["Ex8:OMS (order lifecycle)"]
-        CLEARING["Ex8:Clearing (trades)"]
-        MD["Ex8:MD (quotes)"]
+        ME["Exchange8:ME (order events)"]
+        OMS["Exchange8:OMS (order lifecycle)"]
+        CLEARING["Exchange8:Clearing (trades)"]
+        MD["Exchange8:MD (quotes)"]
     end
 
     subgraph svc["exchange8-regulatory binary (axum on sentin8::shell)"]

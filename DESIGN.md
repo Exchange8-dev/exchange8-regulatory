@@ -1,4 +1,4 @@
-# DESIGN.md: Ex8:Regulatory — Detailed Design Document
+# DESIGN.md: Exchange8:Regulatory — Detailed Design Document
 
 ## 1. Scope & Context
 
@@ -22,14 +22,14 @@
 
 **Does NOT own (delegates)**
 
-- The order/trade/quote stream itself — Ex8:ME, Ex8:OMS, Ex8:Clearing,
-  Ex8:MD produce the events; this service consumes them.
+- The order/trade/quote stream itself — Exchange8:ME, Exchange8:OMS, Exchange8:Clearing,
+  Exchange8:MD produce the events; this service consumes them.
 - Fix-session and API transport implementations — regime transports are
   configuration rows; the transport adapters are a connectivity concern
-  (Ex8:VFeeds owns external feed sessions analogously).
-- Surveillance detection and market-abuse analysis — Ex8:Surveillance (MAR
+  (Exchange8:VFeeds owns external feed sessions analogously).
+- Surveillance detection and market-abuse analysis — Exchange8:Surveillance (MAR
   reporting decisions originate there).
-- Derivative instrument/contract masters — Ex8:RefData.
+- Derivative instrument/contract masters — Exchange8:RefData.
 - Fiat money movement — Bank8:Ledger.
 - Identity, M2M registration, Cron schedules — Sentin8:Auth / Sentin8:Cron.
 
@@ -38,11 +38,11 @@
 ```mermaid
 graph TD
     subgraph vertical["exchange8 vertical (db exchange8)"]
-        ME["Ex8:ME (order events)"]
-        OMS["Ex8:OMS (order lifecycle)"]
-        CLEARING["Ex8:Clearing (trades)"]
-        MD["Ex8:MD (quotes)"]
-        SURV["Ex8:Surveillance (abuse findings)"]
+        ME["Exchange8:ME (order events)"]
+        OMS["Exchange8:OMS (order lifecycle)"]
+        CLEARING["Exchange8:Clearing (trades)"]
+        MD["Exchange8:MD (quotes)"]
+        SURV["Exchange8:Surveillance (abuse findings)"]
     end
 
     subgraph regulators["Trust boundary: regulators"]
@@ -62,7 +62,7 @@ graph TD
         PROXY["Sentin8:Proxy (single ingress)"]
     end
 
-    SVC["Ex8:Regulatory<br/>exchange8-regulatory"]
+    SVC["Exchange8:Regulatory<br/>exchange8-regulatory"]
 
     ME -->|"exchange8:me:* events"| SVC
     OMS -->|"order events"| SVC
@@ -156,7 +156,7 @@ graph TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SRC as Ex8:ME / OMS / Clearing / MD
+    participant SRC as Exchange8:ME / OMS / Clearing / MD
     participant B as Sentin8:Bus
     participant H as bus consumer (reporter driver)
     participant C as ReportRouter + Reporter impls
@@ -261,7 +261,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant L as SSO session (browser)
-    participant D as Ex8:App/Dash RFW host
+    participant D as Exchange8:App/Dash RFW host
     participant P8 as Sentin8:Proxy (ingress)
     participant SVCQ as exchange8-regulatory
     participant SH as Shield
@@ -674,7 +674,7 @@ Insecure defaults rejected:
 
 ```mermaid
 graph TD
-    TP["Ex8:Regulatory test pyramid"] --> UT["unit (in-crate)"]
+    TP["Exchange8:Regulatory test pyramid"] --> UT["unit (in-crate)"]
     TP --> PWT["policy wiring tests (tests/policy.rs)"]
     TP --> SQL["SQL matrix (tests/sql_matrix.rs)"]
     TP --> E2E["E2E (e2e-ts)"]

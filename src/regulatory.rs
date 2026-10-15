@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Regulatory
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:Regulatory core — multi-jurisdiction order/trade reporting.
+//! Exchange8:Regulatory core — multi-jurisdiction order/trade reporting.
 //!
 //! The FIXROC stream is IIROC-specific; real venues report to multiple
 //! regulators. This module owns the reporter abstraction, jurisdiction
