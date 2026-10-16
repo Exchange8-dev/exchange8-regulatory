@@ -12,7 +12,6 @@ acknowledgment lifecycle (`sent → acked | rejected | retrying | failed`)
 under a dense, per-(environment, jurisdiction) report sequence. It is a Rust
 axum binary built on the platform `sentin8::shell` crate (Sentin8 Shell):
 self-registration, capped DB pool, health endpoint, Shield policy-admin
-mount, mimalloc allocator, graceful drain.
 
 ## 2. Motivation
 
@@ -50,7 +49,6 @@ consumer drives:
 |---|---|
 | `regulatory.rs` | `Jurisdiction` (6 regimes, stable keys), `ReportClass`, the normalized `ReportableEvent`, the `Reporter` trait with one impl per regime, `ReportRouter` (fan-out, per-jurisdiction sequences, transport-down retry queue), `FormattedReport` |
 | `registration.rs` | Self-registration: Shield scope-mirror policy set, PG role, admin scopes, error codes, RFW admin pages, M2M DCR grants, SQL init (schema bootstrap applied by `vertical enroll`) |
-| `main.rs` | Sentin8 Shell assembly: serve, router extension (Shield policy-admin mount), mimalloc global allocator |
 
 ```mermaid
 graph TD

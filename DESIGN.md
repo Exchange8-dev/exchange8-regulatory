@@ -121,7 +121,6 @@ The binary (`src/main.rs`) is a Sentin8 Shell assembly:
 `Sentin8Shell::new("exchange8:regulatory", "EXCHANGE8_REGULATORY")` with
 registration printing, `with_simple_state()`, and
 `with_router(extend_router)` that mounts the Shield policy-admin API. The
-global allocator is mimalloc, covering all in-process tokio workers. Boot,
 DB pool, drain, outbox relay and audit pusher are shell-provided. Report
 fan-out runs on a Bus consumer task; the HTTP router carries health and
 admin endpoints only.
@@ -511,7 +510,6 @@ flowchart TD
   `exchange8-regulatory-tls` workload resolves host context DB-free via
   Sys `GET /v1/resolve/hostname` (`sentin8:sys:instances:read`) + TTL
   cache. Post-quantum only.
-- **Allocator** — mimalloc global allocator covers HTTP, consumer,
   relay and journal pusher alike.
 
 ## 6. Failure Modes & Recovery

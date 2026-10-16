@@ -2,7 +2,11 @@
   "vertical": "exchange8",
   "services": [
     {
-      "service_type": "exchange8:regulatory"
+      "service_type": "exchange8:regulatory",
+      "telemetry_property": {
+        "slug": "regulatory",
+        "name": "Exchange8:Regulatory Telemetry"
+      }
     }
   ]
 }
