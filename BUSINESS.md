@@ -1,4 +1,4 @@
-# BUSINESS.md: Exchange8:Regulatory — Business Requirements & Functionality
+# Exchange8:Regulatory — Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
 > Exchange8:Regulatory **does for the business**. For architecture read `README.md`;
