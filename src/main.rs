@@ -13,6 +13,7 @@
 #![allow(dead_code)]
 
 // (DESIGN.md §5). Workers (bus consumers, session supervisors, purge jobs)
+mod openapi;
 mod registration;
 mod regulatory;
 
