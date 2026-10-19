@@ -1,15 +1,15 @@
-# Exchange8:Regulatory — Detailed Design Document
+# Exchange8:Regulatory - Detailed Design Document
 
 ## 1. Scope & Context
 
 **Owns**
 
-- Reporter configuration (`regulatory.regulatory_session`) — per-environment
+- Reporter configuration (`regulatory.regulatory_session`) - per-environment
   links to each reporting regime: jurisdiction, format
   (`fix`/`api`/`file`/`sftp`), transport, address/port, credentials as
   secret reference, enabled flag; unique `(env_id, jurisdiction)`.
 - Report history and acknowledgment state (`regulatory.regulatory_report`)
-  — one row per formatted report with the dense per-(env, jurisdiction)
+  - one row per formatted report with the dense per-(env, jurisdiction)
   sequence, the report class, the payload and the
   `sent/acked/rejected/retrying/failed` lifecycle.
 - The reporter core: `Jurisdiction` (6 regimes), `ReportClass` (5 classes),
@@ -22,16 +22,16 @@
 
 **Does NOT own (delegates)**
 
-- The order/trade/quote stream itself — Exchange8:ME, Exchange8:OMS, Exchange8:Clearing,
+- The order/trade/quote stream itself - Exchange8:ME, Exchange8:OMS, Exchange8:Clearing,
   Exchange8:MD produce the events; this service consumes them.
-- Fix-session and API transport implementations — regime transports are
+- Fix-session and API transport implementations - regime transports are
   configuration rows; the transport adapters are a connectivity concern
   (Exchange8:VFeeds owns external feed sessions analogously).
-- Surveillance detection and market-abuse analysis — Exchange8:Surveillance (MAR
+- Surveillance detection and market-abuse analysis - Exchange8:Surveillance (MAR
   reporting decisions originate there).
-- Derivative instrument/contract masters — Exchange8:RefData.
-- Fiat money movement — Bank8:Ledger.
-- Identity, M2M registration, Cron schedules — Sentin8:Auth / Sentin8:Cron.
+- Derivative instrument/contract masters - Exchange8:RefData.
+- Fiat money movement - Bank8:Ledger.
+- Identity, M2M registration, Cron schedules - Sentin8:Auth / Sentin8:Cron.
 
 ### System context
 
@@ -170,14 +170,14 @@ sequenceDiagram
     alt reportable in regime and transport up
         C-->>H: FormattedReport {jurisdiction, payload, seq}
     else class not reportable in regime
-        C-->>H: Err(Rejected(j)) — no retry entry, sequence consumed
+        C-->>H: Err(Rejected(j)) - no retry entry, sequence consumed
     else transport down
-        C-->>H: Err(TransportDown(j)) — payload stashed in retry queue
+        C-->>H: Err(TransportDown(j)) - payload stashed in retry queue
     end
     H->>DB: BEGIN
     H->>DB: INSERT regulatory.regulatory_report (env_id, jurisdiction, seq, report_class, payload, ack_state)
-    H->>DB: INSERT regulatory.outbox (event payload) — same tx
-    H->>DB: INSERT regulatory.audit_journal — same tx
+    H->>DB: INSERT regulatory.outbox (event payload) - same tx
+    H->>DB: INSERT regulatory.audit_journal - same tx
     H->>DB: COMMIT (UNIQUE env_id,jurisdiction,seq enforced)
 ```
 
@@ -223,10 +223,10 @@ sequenceDiagram
     H->>DB: SELECT regulatory_report WHERE UNIQUE triple + sent|retrying
     alt found (sent or retrying)
         H->>DB: UPDATE ack_state → 'acked' (ACK) | 'rejected' (NACK)
-        H->>DB: INSERT regulatory.audit_journal — same tx
+        H->>DB: INSERT regulatory.audit_journal - same tx
         H->>DB: COMMIT
     else unknown or already terminal
-        H-->>H: duplicate/late ack — no state change (idempotent)
+        H-->>H: duplicate/late ack - no state change (idempotent)
     end
     A->>DB: drain unpushed journal rows
     A->>R2: POST /v1/audit (sentin8:sys:audit:write)
@@ -350,7 +350,7 @@ Per-table notes:
 
 | Table | Visibility | Notes |
 |---|---|---|
-| `regulatory.regulatory_session` | env-scoped, RLS FORCE | one link per (env, jurisdiction) — `UNIQUE (env_id, jurisdiction)`; `jurisdiction` CHECK matches the six regime keys; `format` CHECK `fix/api/file/sftp`; credentials only as `creds_secret_ref` |
+| `regulatory.regulatory_session` | env-scoped, RLS FORCE | one link per (env, jurisdiction) - `UNIQUE (env_id, jurisdiction)`; `jurisdiction` CHECK matches the six regime keys; `format` CHECK `fix/api/file/sftp`; credentials only as `creds_secret_ref` |
 | `regulatory.regulatory_report` | env-scoped, RLS FORCE | report history + ack lifecycle; `UNIQUE (env_id, jurisdiction, seq)` is the idempotency backstop; `report_class` CHECK mirrors the five `ReportClass` variants; index `idx_exchange8_regreport_env_state (env_id, ack_state)` for the reconciliation sweep |
 | `regulatory.outbox` | env-scoped, RLS FORCE | DBX §6.7 producer table; column `id` doubles as `idempotency_key` at Bus `POST /v1/produce`; partial index `idx_regulatory_outbox_unrelayed (created_at) WHERE relayed = false`; trigger `outbox_notify_trigger` → `pg_notify('regulatory_outbox_changed')` |
 | `regulatory.audit_journal` | env-scoped, RLS FORCE | DBX §6.8 journal; single combined policy `audit_journal_dml` (USING + WITH CHECK); partial index `idx_regulatory_audit_journal_unpushed (created_at) WHERE pushed = false` |
@@ -375,7 +375,7 @@ stateDiagram-v2
 ## 4. API Surface
 
 Grouped by audience; the authorization gate for all surfaces is the 8-step
-platform pipeline — bearer verify → tenant resolve → feature gate →
+platform pipeline - bearer verify → tenant resolve → feature gate →
 **Shield (sentin8-policy, scope-mirror policy set `scope-mirror`,
 `origin='platform'`, `mode='enforced'`)** → RLS context → execute → audit.
 The HTTP router mounts
@@ -388,10 +388,10 @@ action evaluated in step 5 is `exchange8:regulatory:report` (the single
 |---|---|---|---|
 | System (M2M) | Report generation from bus streams (`exchange8:regulatory:report` action) | scope-mirror permit / `sentin8:sys:admin`, `sentin8:sys:org:admin`, `sentin8:sys:env:admin` | outbox event (domain payload, `regulatory_outbox_changed`) |
 | System (M2M) | Regime submission and ACK/NACK ingestion (`exchange8:regulatory:report`) | scope-mirror permit | outbox event + audit journal row, same tx |
-| Admin (RFW) | `/v1/admin/ui/sessions` + `/v1/admin/sessions` (page "Reporters", icon `0xe8cc`) | `exchange8:regulatory:read` / role `exchange8:admin` | — |
-| Admin (RFW) | `/v1/admin/ui/reports` + `/v1/admin/reports` (page "Report History", icon `0xe873`) | `exchange8:regulatory:read` / role `exchange8:admin` | — |
+| Admin (RFW) | `/v1/admin/ui/sessions` + `/v1/admin/sessions` (page "Reporters", icon `0xe8cc`) | `exchange8:regulatory:read` / role `exchange8:admin` | - |
+| Admin (RFW) | `/v1/admin/ui/reports` + `/v1/admin/reports` (page "Report History", icon `0xe873`) | `exchange8:regulatory:read` / role `exchange8:admin` | - |
 | Admin | Shield policy-admin API (`exchange8:regulatory:policy:read` / `:write`) | role `exchange8:regulatory:admin` | `sentin8:sys:policy` family |
-| Ops | `GET /v1/health`, `/openapi.json` | unauthenticated health; openapi none | — |
+| Ops | `GET /v1/health`, `/openapi.json` | unauthenticated health; openapi none | - |
 
 Declared error code: `exchange8_report_rejected` (502). Declared admin
 service flag: `exchange8-regulatory`; app label "Regulatory" (icon `0xe8eb`).
@@ -407,7 +407,7 @@ sequenceDiagram
     participant B as Sentin8:Bus
     participant T as Trigger (owner / Flow / Cron)
 
-    W->>DB: BEGIN — regulatory_report + outbox (+ audit_journal)
+    W->>DB: BEGIN - regulatory_report + outbox (+ audit_journal)
     W->>DB: INSERT regulatory.outbox (payload, idempotency = row id)
     W->>DB: COMMIT (pg_notify regulatory_outbox_changed)
     R->>DB: SELECT unrelayed outbox rows (partial index)
@@ -432,7 +432,7 @@ sequenceDiagram
     A->>DB: SELECT unpushed audit_journal rows (partial index)
     A->>S: POST /v1/audit (sentin8:sys:audit:write)
     S-->>A: 200 → mark pushed
-    Note over A,S: Sys outage never drops audit — rows retry until pushed
+    Note over A,S: Sys outage never drops audit - rows retry until pushed
 ```
 
 **Event flow (outbox → Bus → trigger):**
@@ -458,17 +458,17 @@ flowchart TD
 
 ## 5. Cross-Cutting Concerns
 
-- **Authentication** — Sentin8:Auth is the only issuer. Admin/user access
+- **Authentication** - Sentin8:Auth is the only issuer. Admin/user access
   uses user tokens; system reporting uses cert-bound M2M
   `client_credentials` tokens (DCR-registered per workload:
   `exchange8:regulatory` + `regulatory` (service client, both spellings
-  granted — read/write, bus produce/consume, stat measure);
+  granted - read/write, bus produce/consume, stat measure);
   `exchange8:regulatory-policy` + `regulatory-policy` (Shield hot-reload
   consumer + stat emitter pair); `regulatory-audit` (audit-journal pusher,
   `sentin8:sys:audit:write`); `exchange8-regulatory-tls` (database-free
   HostContextResolver, `sentin8:sys:instances:read`). DCR is fail-closed:
   only workloads present in the enrolled registry can register.
-- **Authorization** — Shield (sentin8-policy) with the declared scope-mirror
+- **Authorization** - Shield (sentin8-policy) with the declared scope-mirror
   set (`policy_set_name 'scope-mirror'`, `origin='platform'`,
   `mode='enforced'`, `default_enabled=true`): action-granular permits for
   `exchange8:regulatory:report` over the live effective scope set, mirrored
@@ -479,33 +479,33 @@ flowchart TD
   authors may add role-keyed sets (`principal.roles.contains(...)`), and
   forbid beats permit. The enroll-time dry-run gate rejects a set that
   denies its own grants.
-- **Tenant resolution + RLS** — every table `ENABLE` + `FORCE ROW LEVEL
+- **Tenant resolution + RLS** - every table `ENABLE` + `FORCE ROW LEVEL
   SECURITY`; policies `sentin8_context_initialized() AND env_id =
   sentin8_current_env_id()`; context set with
   `SELECT sentin8_set_tenant_context(...)` (`set_config(..., true)`,
-  transaction-local) on the **same connection** as the data statements —
+  transaction-local) on the **same connection** as the data statements -
   the async helper must be awaited. Explicit `env_id = $N` predicates stay
   the primary defense; RLS is the backstop. Role
   `exchange8_regulatory_service` carries no `BYPASSRLS`, holds
   `search_path = regulatory, public`, grants only in database `exchange8`,
   zero cross-schema grants.
-- **Idempotency** — report dedup: `UNIQUE (env_id, jurisdiction, seq)`;
+- **Idempotency** - report dedup: `UNIQUE (env_id, jurisdiction, seq)`;
   relay: `idempotency_key` = outbox row id at Bus `POST /v1/produce`;
   acknowledgment replay: a late/duplicate ACK on a terminal-state row is a
   no-op; outbox retries reuse the row id.
-- **Rate limiting / bot protection** — ingress tier is the platform edge
+- **Rate limiting / bot protection** - ingress tier is the platform edge
   (Sentin8:Proxy); service-local rate policies ride the Shield policy
   surface (per-tenant sets), not bespoke code.
-- **Audit journaling** — every state transition (report generated, acked,
+- **Audit journaling** - every state transition (report generated, acked,
   rejected, retried) writes `regulatory.audit_journal` in the same
   transaction where possible; the pusher drains to `POST /v1/audit`
   (`sentin8:sys:audit:write`, workload `regulatory-audit`); Sys outage
   retries without loss.
-- **Drain** — `sentin8::shell` graceful drain on upgrade: HTTP stops
+- **Drain** - `sentin8::shell` graceful drain on upgrade: HTTP stops
   accepting, in-flight requests finish, the relay/journal pusher checkpoint
   unrelayed/unpushed rows, and Sentin8:Captain `upgrade-instance` swaps the
   binary (rolling, zero-downtime).
-- **TLS** — terminated in-process by `sentin8-tls` behind Sentin8:Proxy
+- **TLS** - terminated in-process by `sentin8-tls` behind Sentin8:Proxy
   (single ingress, SNI `exchange8-regulatory.{env}.{org}.{tld}`); the
   `exchange8-regulatory-tls` workload resolves host context DB-free via
   Sys `GET /v1/resolve/hostname` (`sentin8:sys:instances:read`) + TTL
@@ -557,7 +557,7 @@ sequenceDiagram
     participant DB as db exchange8
     participant R as Relay (next boot / retry loop)
 
-    W->>DB: BEGIN — report row + outbox + audit_journal
+    W->>DB: BEGIN - report row + outbox + audit_journal
     W->>W: CRASH before relay (tx COMMITTED)
     Note over DB: UNIQUE (env_id,jurisdiction,seq) holds<br/>outbox unrelayed · journal unpushed
     R->>DB: boot: SELECT unrelayed outbox (partial index)
@@ -575,8 +575,8 @@ sequenceDiagram
 | Relay outage | outbox rows retry with backoff; `idempotency_key` = row id makes replay safe |
 | Bus DLQ | consumer delivery failures land in DLQ; manual replay re-produces with the same `idempotency_key` |
 | Sys outage | audit journal rows retry (`pushed = false` partial index), never dropped |
-| Regime mis-config (unknown jurisdiction key) | INSERT rejected by the CHECK constraint — no silent regime |
-| Duplicate ACK | terminal-state no-op — acknowledgment ingestion is idempotent |
+| Regime mis-config (unknown jurisdiction key) | INSERT rejected by the CHECK constraint - no silent regime |
+| Duplicate ACK | terminal-state no-op - acknowledgment ingestion is idempotent |
 
 ## 7. Concurrency & Performance Model
 
@@ -603,22 +603,22 @@ graph LR
     CONS -->|"FIX / API / file / SFTP"| REGQ["regulators"]
 ```
 
-- **Task layout** — one HTTP acceptor; one bus consumer driving the
+- **Task layout** - one HTTP acceptor; one bus consumer driving the
   `ReportRouter`; one relay task (LISTEN `regulatory_outbox_changed` +
   periodic unrelayed poll); one audit pusher. The router holds the mutable
   fan-out state (sequences + retry queue) behind the single consumer, so
   no cross-task shared mutable state exists on the hot path.
-- **Pool sizing** — the shared `sentin8_config::pg_pool::connect` caps
+- **Pool sizing** - the shared `sentin8_config::pg_pool::connect` caps
   connections (default 3, overridable via `SENTIN8_PG_POOL_MAX`) so ~20
   services cannot exhaust PostgreSQL; the relay, journal pusher and
   consumer share the pool; tenant context is set transaction-locally per
   statement set.
-- **Hot paths** — per-jurisdiction format + report row insert (single
+- **Hot paths** - per-jurisdiction format + report row insert (single
   UNIQUE-guarded row + outbox row); sequence bookkeeping is a HashMap
   increment; payloads are plain strings. Cache: nothing hot-cached beyond
   the Shield policy sets (hot-reload consumer keeps them fresh) and the
   embedded HostContextResolver TTL cache.
-- **Backpressure** — the `relayed = false` and `pushed = false` partial
+- **Backpressure** - the `relayed = false` and `pushed = false` partial
   indexes bound the relay/pusher scans; relay backoff keeps a Bus outage
   from spinning; the drain path checkpoints before shutdown.
 
@@ -635,7 +635,7 @@ Invariants (always true):
 3. A report write and its `regulatory.outbox` row (and wherever possible
    `regulatory.audit_journal`) commit in the same transaction.
 4. Uniqueness of a submitted report is enforced by
-   `UNIQUE (env_id, jurisdiction, seq)` — a relay replay can never create a
+   `UNIQUE (env_id, jurisdiction, seq)` - a relay replay can never create a
    second submission of the same sequence.
 5. Acknowledgment ingestion only transitions from `sent`/`retrying`;
    `acked`, `rejected`, and `failed` are terminal.
@@ -645,10 +645,10 @@ Invariants (always true):
 7. Every tenant table carries `ENABLE` + `FORCE ROW LEVEL SECURITY` with
    the standard context policies; the service role has no `BYPASSRLS`, no
    cross-schema grants, and exists only in database `exchange8`.
-8. Credentials to regimes exist only as `creds_secret_ref` values — never
+8. Credentials to regimes exist only as `creds_secret_ref` values - never
    plaintext in `regulatory_session` rows.
 9. Jurisdiction keys (`iiroc|cat|mifir|fca|emir|dodd_frank`) and report
-   classes (`new|modify|cancel|trade|quote`) match the SQL CHECKs exactly —
+   classes (`new|modify|cancel|trade|quote`) match the SQL CHECKs exactly -
    wire keys and schema constraints are a single vocabulary.
 10. The seeded Shield scope-mirror text covers every step-5 handler action
     (`exchange8:regulatory:report`) and passes the enroll dry-run gate; a
@@ -656,16 +656,16 @@ Invariants (always true):
 
 Insecure defaults rejected:
 
-- **`danger_accept_invalid_certs` / hand-rolled CA loading** — TLS is
+- **`danger_accept_invalid_certs` / hand-rolled CA loading** - TLS is
   in-process via `sentin8-tls` (post-quantum, root CA in the OS trust
   store); regulator endpoints use the configured transport with
   secret-referenced credentials.
-- **Direct cross-schema/table joins into other services** — cross-service
+- **Direct cross-schema/table joins into other services** - cross-service
   data flows are membus → bus → owner API in the access order rule (this
   service declares zero cross-schema grants today).
-- **Static superuser service DSN** — role `exchange8_regulatory_service` is
+- **Static superuser service DSN** - role `exchange8_regulatory_service` is
   unprivileged, non-bypass, database-`exchange8`-only.
-- **Plaintext regime credentials** — token/credential columns carry
+- **Plaintext regime credentials** - token/credential columns carry
   references only (Secrets), never values.
 
 ## 9. Testing Strategy
@@ -691,29 +691,29 @@ graph TD
     E2E --> E1["human-parity flows through BFF only"]
 ```
 
-- **Unit layer** — the pure reporting core owns all domain behavior:
+- **Unit layer** - the pure reporting core owns all domain behavior:
   fixed jurisdiction keys, per-regime class rejection rules, fan-out to
   every registered reporter, per-jurisdiction sequence isolation
   (sequences advance across transport-down reports and never roll back),
   retry-queue semantics (stale payload re-formatted, drain in registration
   order, accumulation across down batches), and payload field rendering.
-- **Policy layer** — proves the real seeded scope-mirror text
+- **Policy layer** - proves the real seeded scope-mirror text
   (`registration::SCOPE_MIRROR_POLICIES`, the exact string `vertical
   enroll` upserts) evaluates fail-closed: no-set deny, enforced no-match
   deny, shadow never blocks, M2M parity, platform-admin scopes pass, forbid
   beats permit, role-keyed tenant sets decide, and the enroll dry-run
   gate accepts the declared set.
-- **SQL matrix** — live PostgreSQL 18 as the non-bypass `exchange8_probe`
+- **SQL matrix** - live PostgreSQL 18 as the non-bypass `exchange8_probe`
   role (`sql/probe.sql`): policy coverage for every table this service's
   `init.sql` declares, plus the behavioral matrix (no tenant context → 0
   rows silent; insert without context rejected by WITH CHECK; own-env
   context → exactly one probe row; cross-env → 0 rows), all inside one
   rolled-back transaction, skipped silently while offline so
   `cargo test` stays hermetic.
-- **Deliberately not tested here** — platform TLS/RLS plumbing itself,
+- **Deliberately not tested here** - platform TLS/RLS plumbing itself,
   Sentin8:Bus delivery guarantees, Shield engine internals: covered by
   the platform's own test strategy docs.
-- **E2E** — the vertical's `e2e-ts` suite drives the real UI through the
+- **E2E** - the vertical's `e2e-ts` suite drives the real UI through the
   BFF only (no direct SQL or backend calls).
 
 ## 10. Open Questions
@@ -734,7 +734,7 @@ graph TD
   `ReportRouter` for an environment) is a boot-wiring decision pending the
   connectivity integration.
 - MiCA and MAR regimes (vertical design §2) have no `Jurisdiction` variant
-  or SQL CHECK entry — extending the enum, the CHECKs and the reporter set
+  or SQL CHECK entry - extending the enum, the CHECKs and the reporter set
   is a target-state change when those regimes are added.
 - Statement purge / archival policy for `regulatory_report` history and
   the reconciliation view used by admin RFW pages are deferred design

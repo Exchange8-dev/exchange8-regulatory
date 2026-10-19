@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Regulatory
 // SPDX-License-Identifier: Apache-2.0
 
-//! Exchange8:REGULATORY service binary — multi-jurisdiction regulatory reporting.
+//! Exchange8:REGULATORY service binary - multi-jurisdiction regulatory reporting.
 //!
 //! Design: `design/sentin8-exchange8-regulatory-technical-design.md` (see the
 //! service doc for the exact file). Core logic in the sibling modules;
@@ -21,7 +21,7 @@ fn extend_router(
     app: axum::Router<std::sync::Arc<sentin8::shell::AppState>>,
     _state: std::sync::Arc<sentin8::shell::AppState>,
 ) -> axum::Router<std::sync::Arc<sentin8::shell::AppState>> {
-    // ── Sentin8:Policy admin API (DESIGN.md §2 — shared implementation;
+    // ── Sentin8:Policy admin API (DESIGN.md §2 - shared implementation;
     // the shell AppState already implements HasPolicyAdmin).
     sentin8::shell::mount_policy_admin(
         // Reporters run on the Bus consumer task (design §3);

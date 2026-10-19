@@ -3,7 +3,7 @@
 -- SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Regulatory
 -- SPDX-License-Identifier: Apache-2.0
 
--- Ex8:Regulatory — reporting sessions and report history.
+-- Ex8:Regulatory - reporting sessions and report history.
 --
 -- Design: design/sentin8-exchange8-data-model-technical-design.md §3.8 (RG).
 -- No migration code (new platform): `sentin8-cli vertical init` applies this.
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS regulatory.regulatory_session (
     transport   TEXT NOT NULL,
     address     TEXT,
     port        INTEGER,
-    creds_secret_ref TEXT,               -- Sentin8:Secrets reference — never plaintext
+    creds_secret_ref TEXT,               -- Sentin8:Secrets reference - never plaintext
     enabled     BOOLEAN NOT NULL DEFAULT TRUE,
     UNIQUE (env_id, jurisdiction)
 );
@@ -72,7 +72,7 @@ END $$;
 
 -- ---------------------------------------------------------------------------
 -- Per-service role grants (schema-per-service: this service owns schema
--- `regulatory`; grants live in db `exchange8` only — design doc §1).
+-- `regulatory`; grants live in db `exchange8` only - design doc §1).
 -- ---------------------------------------------------------------------------
 DO $$
 BEGIN
@@ -85,7 +85,7 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- Local outbox (DBX §6.7 — generated from `sentin8_outbox::outbox_table_sql(
+-- Local outbox (DBX §6.7 - generated from `sentin8_outbox::outbox_table_sql(
 -- "regulatory")`): rows written in the same DB transaction as the domain change;
 -- the shell's relay (boot step §8b) pushes them to Bus `POST /v1/produce`.
 -- ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ CREATE TRIGGER outbox_notify_trigger
     EXECUTE FUNCTION regulatory.regulatory_notify_outbox();
 
 -- ---------------------------------------------------------------------------
--- Local audit journal (DBX §6.8 — generated from
+-- Local audit journal (DBX §6.8 - generated from
 -- `sentin8_audit::audit_journal_sql("regulatory")`): rows written in the same
 -- transaction as the domain change; the shell's pusher (boot step §8c) pushes
 -- them to Sys `POST /v1/audit` (`sentin8:sys:audit:write`). A Sys outage

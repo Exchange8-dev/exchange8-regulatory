@@ -778,7 +778,7 @@
   "tags": [
     {
       "name": "regulatory",
-      "description": "Exchange8:Regulatory — policy admin + health only"
+      "description": "Exchange8:Regulatory - policy admin + health only"
     },
     {
       "name": "policy",

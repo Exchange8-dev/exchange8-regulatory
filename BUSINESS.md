@@ -1,4 +1,4 @@
-# Exchange8:Regulatory — Business Requirements & Functionality
+# Exchange8:Regulatory - Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
 > Exchange8:Regulatory **does for the business**. For architecture read `README.md`;
@@ -9,7 +9,7 @@
 - Keep the venue **compliant with every regulator it answers to**: order,
   trade and quote activity is reported to IIROC (Canada), the US regimes
   (Reg NMS / Reg SHO / CAT), ESMA MiFIR (EU), the UK FCA, and the
-  derivatives rule books (EMIR, Dodd-Frank) — from one normalized event
+  derivatives rule books (EMIR, Dodd-Frank) - from one normalized event
   stream, not six bespoke pipelines.
 - Guarantee **complete, ordered, and provable reporting**: every submitted
   report is sequenced per regime and per environment, and the venue can
@@ -18,7 +18,7 @@
   field-selection rules (what is reportable, which fields are mandatory)
   live in one pluggable reporter per regime.
 - Treat the regulator like any other external counterparty: submissions
-  have durable state, retries, acknowledgments and a reconciliation trail —
+  have durable state, retries, acknowledgments and a reconciliation trail -
   an outage or a NACK is a workable business event, never a lost record.
 - Keep **credentials and transport details** out of code: a regime link is
   environment configuration (endpoint, protocol, secret reference), so
@@ -60,9 +60,9 @@
 
 | Capability | Business rule |
 |---|---|
-| IIROC (Canada) | Order, trade and quote reports in the FIXROC regime — new, modify, cancel, trade and quote classes all format, with side and short-sale flags carried |
+| IIROC (Canada) | Order, trade and quote reports in the FIXROC regime - new, modify, cancel, trade and quote classes all format, with side and short-sale flags carried |
 | US CAT | Order events and trades report (with mandatory short-sale flags); quotes are not a CAT obligation and are refused |
-| MiFIR (EU) | Transaction reporting only — trades format; order events and quotes are refused |
+| MiFIR (EU) | Transaction reporting only - trades format; order events and quotes are refused |
 | FCA (UK) | UK transaction reporting mirrors the ESMA field set; trades only |
 | EMIR (EU/UK) | Derivatives reporting (table 1/2 field sets); trades only, short-sale and cross flags not applicable |
 | Dodd-Frank (US) | Swap reporting (public dissemination and real-time SDR submission field sets); trades only |
@@ -73,10 +73,10 @@
 | Capability | Business rule |
 |---|---|
 | Normalized events | Order activity, trades and quotes from the venue's engines are normalized into one reportable-event shape (instrument, account, quantity, price, side, short-sale, cross, timestamp) |
-| Fan-out | Every event goes to every configured jurisdiction — a venue cannot silently skip a regime it is configured for |
+| Fan-out | Every event goes to every configured jurisdiction - a venue cannot silently skip a regime it is configured for |
 | Sequence discipline | Each jurisdiction numbers its reports independently and monotonically; a rejected event shows as a gap (legal), and no sequence is ever reused |
 | Short-sale & cross flags | Short-sale markers and cross-book indicators ride the report where the regime requires them |
-| Rejection semantics | An event a regime does not accept (e.g. a quote to CAT) is refused by that regime's reporter only — other regimes still receive it |
+| Rejection semantics | An event a regime does not accept (e.g. a quote to CAT) is refused by that regime's reporter only - other regimes still receive it |
 
 ### Report lifecycle & reconciliation
 
@@ -121,7 +121,7 @@ transports.
 2. A report sequence is **unique per (environment, jurisdiction)**;
    duplicate submission by replay is structurally impossible.
 3. A report that a regime refuses (wrong event class) consumes that
-   regime's sequence as a gap — gaps are legal, sequence reuse is not.
+   regime's sequence as a gap - gaps are legal, sequence reuse is not.
 4. Reports queued during a transport outage are re-formatted with a **fresh
    sequence** on recovery; a stale queued payload is never replayed as-is.
 5. A report's lifecycle is durable: only `sent` and `retrying` rows accept
@@ -133,7 +133,7 @@ transports.
 7. All reporting data is tenant-isolated: no operation can read or write
    another environment's reports (row-level security backstop on every
    table; explicit environment predicates primary).
-8. Regime credentials exist only as secret references — plaintext
+8. Regime credentials exist only as secret references - plaintext
    credentials are a design violation, never a configuration option.
 9. The service is authorized by the platform policy engine only, and
    fail-closed: no policy set means no access, and machine identities never
@@ -156,21 +156,21 @@ transports.
 
 ## 7. KPIs / Success Criteria
 
-- **Reporting completeness** — every reportable event produces exactly one
+- **Reporting completeness** - every reportable event produces exactly one
   attempted report per configured jurisdiction (fan-out coverage 100%).
-- **Sequence integrity** — zero duplicate sequences per (env, jurisdiction)
+- **Sequence integrity** - zero duplicate sequences per (env, jurisdiction)
   ever; gaps in a jurisdiction's sequence are explainable (rejections count
   as issued, not lost).
-- **Acknowledgment closure** — the share of reports reaching a terminal
+- **Acknowledgment closure** - the share of reports reaching a terminal
   state (acked / rejected / failed) with no reports stuck in `sent` or
   `retrying` beyond the regime's acknowledgment window.
-- **Outage recovery** — all reports queued during a regime outage are
+- **Outage recovery** - all reports queued during a regime outage are
   re-formatted and drained on recovery; none lost, none double-sent.
-- **Auditability** — 100% of lifecycle transitions journaled and pushed to
+- **Auditability** - 100% of lifecycle transitions journaled and pushed to
   the platform audit intake; a Sys outage never drops an audit record.
-- **Tenant isolation** — zero cross-environment reads/writes under the
+- **Tenant isolation** - zero cross-environment reads/writes under the
   enforced RLS matrix.
-- **Compliance posture** — every lifecycle-relevant action authorized by
+- **Compliance posture** - every lifecycle-relevant action authorized by
   the platform policy engine; no unauthenticated path beyond health.
 
 ## 8. Dependencies & Reliance on Other Services
@@ -194,7 +194,7 @@ transports.
 1. A trade executed in a fan-out environment produces an attempted report
    to every configured jurisdiction for that environment; a jurisdiction's
    configured absence produces none.
-2. The same event replayed twice yields one report row per jurisdiction —
+2. The same event replayed twice yields one report row per jurisdiction -
    the sequence uniqueness constraint forbids a second submission.
 3. A quote submitted to the US CAT reporter is refused by that reporter
    while IIROC continues to receive it; MiFIR/FCA/EMIR/Dodd-Frank
@@ -205,12 +205,12 @@ transports.
 5. A regulator ACK sets the report to `acked`, a NACK to `rejected`; a
    duplicate ACK on a terminal row changes nothing.
 6. Repeated transport failures advance `retry_count` and end terminally in
-   `failed` — reports never retry forever outside their state machine.
+   `failed` - reports never retry forever outside their state machine.
 7. Every lifecycle transition is visible in report history with its
    audited before/after states, and the audit journal drains to the
    platform audit intake even across its outages.
 8. A second environment's operator cannot see, query, or submit against
-   another environment's report history — enforced by row-level security,
+   another environment's report history - enforced by row-level security,
    proven by the RLS matrix tests.
 9. All regime credentials resolve through secret references; no plaintext
    credential exists in any reporting configuration row.

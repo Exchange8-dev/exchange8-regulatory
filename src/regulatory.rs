@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Regulatory
 // SPDX-License-Identifier: Apache-2.0
 
-//! Exchange8:Regulatory core — multi-jurisdiction order/trade reporting.
+//! Exchange8:Regulatory core - multi-jurisdiction order/trade reporting.
 //!
 //! The FIXROC stream is IIROC-specific; real venues report to multiple
 //! regulators. This module owns the reporter abstraction, jurisdiction
@@ -17,17 +17,17 @@ use thiserror::Error;
 /// A reporting jurisdiction/regime.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Jurisdiction {
-    /// Canada — order/trade/quote reporting (FIXROC).
+    /// Canada - order/trade/quote reporting (FIXROC).
     Iiroc,
-    /// US — Reg NMS / Reg SHO / CAT (consolidated audit trail).
+    /// US - Reg NMS / Reg SHO / CAT (consolidated audit trail).
     Cat,
-    /// EU — ESMA MiFIR transaction reporting (RTS 22).
+    /// EU - ESMA MiFIR transaction reporting (RTS 22).
     Mifir,
-    /// UK — FCA transaction reporting.
+    /// UK - FCA transaction reporting.
     Fca,
-    /// EU/UK — EMIR derivatives reporting.
+    /// EU/UK - EMIR derivatives reporting.
     Emir,
-    /// US — Dodd-Frank/swap reporting.
+    /// US - Dodd-Frank/swap reporting.
     DoddFrank,
 }
 
@@ -103,7 +103,7 @@ pub struct FormattedReport {
     pub seq: u64,
 }
 
-/// The reporter trait — one impl per jurisdiction (FIXROC is the
+/// The reporter trait - one impl per jurisdiction (FIXROC is the
 /// IIROC impl; CAT/MiFIR/FCA/EMIR/Dodd-Frank are the new impls).
 pub trait Reporter {
     fn jurisdiction(&self) -> Jurisdiction;
@@ -111,7 +111,7 @@ pub trait Reporter {
     fn format(&self, event: &ReportableEvent, seq: u64) -> Result<FormattedReport, ReportError>;
 }
 
-/// IIROC reporter — FIXROC parity (FIX 5.0 session).
+/// IIROC reporter - FIXROC parity (FIX 5.0 session).
 pub struct IirocReporter;
 
 impl Reporter for IirocReporter {
@@ -499,7 +499,7 @@ mod tests {
         let mut router = ReportRouter::new();
         router.register(Box::new(CatReporter));
         router.register(Box::new(MifirReporter));
-        // A quote: CAT rejects, MiFIR rejects — no transport in queue.
+        // A quote: CAT rejects, MiFIR rejects - no transport in queue.
         let mut quote = trade(false);
         quote.class = ReportClass::Quote;
         let results = router.report(&quote, true);
@@ -571,7 +571,7 @@ mod tests {
 
     #[test]
     fn rejected_events_do_not_consume_retry_queue_or_advance_seq() {
-        // Hmm — check semantics: seq IS incremented before format() (the
+        // Hmm - check semantics: seq IS incremented before format() (the
         // router counts attempts per jurisdiction). Pin the actual behavior:
         // a rejection consumes a sequence number (gaps are legal per FIX
         // seqnum rules), but nothing lands in the retry queue.

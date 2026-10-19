@@ -29,7 +29,7 @@ self-registration, capped DB pool, health endpoint, Shield policy-admin
   regulator ACK/NACK and transport outages are reconciled against that row.
 - **Sequence discipline is a regulator contract.** Reports are sequenced
   per (env, jurisdiction); gaps are legal (a rejection consumes a sequence),
-  but a sequence is never reused — deduplication rides the
+  but a sequence is never reused - deduplication rides the
   `UNIQUE (env_id, jurisdiction, seq)` constraint.
 - **Credentials are references, never plaintext.** Regime endpoint
   credentials live as `creds_secret_ref` values only.
@@ -121,35 +121,35 @@ audit pusher drains `regulatory.audit_journal` to Sentin8:Sys
 
 Concepts, not signatures:
 
-- **Jurisdiction** — the six reporting regimes, each with a stable wire key
+- **Jurisdiction** - the six reporting regimes, each with a stable wire key
   (`iiroc`, `cat`, `mifir`, `fca`, `emir`, `dodd_frank`) used in
   configuration rows (`regulatory_session.jurisdiction` CHECK) and event
   routing.
-- **Report class** — the five event classes a venue can report: `new`,
+- **Report class** - the five event classes a venue can report: `new`,
   `modify`, `cancel`, `trade`, `quote` (mirrors the
   `regulatory_report.report_class` CHECK).
-- **Reportable event** — the single normalized input shape both classes and
+- **Reportable event** - the single normalized input shape both classes and
   regimes agree on: instrument, account, quantity, raw price, timestamp,
   side, short-sale flag, cross-book flag.
-- **`Reporter` trait** — the regime boundary: one implementation per
+- **`Reporter` trait** - the regime boundary: one implementation per
   jurisdiction that formats an event at a caller-supplied per-session
   sequence. Field-selection rules per regime: IIROC formats every class;
   the US CAT reporter rejects quotes (quotes are not CAT obligations);
   the MiFIR, FCA, EMIR and Dodd-Frank reporters take trades only (order
   events and quotes are transaction-reporting out of scope there).
-- **FormattedReport** — the per-regime output: jurisdiction, normalized
+- **FormattedReport** - the per-regime output: jurisdiction, normalized
   payload string, regime sequence number. The shell converts payloads to the
   transport's wire form at the boundary (IIROC payloads carry the FIX 5.0
   tag selection: D new, G modify, F cancel, 8 execution).
-- **ReportRouter** — the fan-out core: registers one reporter per
+- **ReportRouter** - the fan-out core: registers one reporter per
   jurisdiction, routes every event to all of them, keeps an isolated
   sequence counter per jurisdiction, and stashes formatted payloads in a
   retry queue when the transport is down. Rejections (class not reportable
   in that regime) return errors without queueing.
-- **Report lifecycle (`ack_state`)** — `sent → acked | rejected |
+- **Report lifecycle (`ack_state`)** - `sent → acked | rejected |
   retrying`, with `retrying → sent` on recovery and `retrying → failed`
   when attempts exhaust; `retry_count` is the durable attempt tally.
-- **Reporter configuration** — `regulatory_session` rows per environment:
+- **Reporter configuration** - `regulatory_session` rows per environment:
   jurisdiction (unique per env), format (`fix`/`api`/`file`/`sftp`),
   transport, address/port, credentials as secret reference, enabled flag.
 
@@ -166,7 +166,7 @@ Concepts, not signatures:
 - **Normalized JSON payloads in the core; wire conversion at the
   transport.** Keeps the core pure and lets tests assert on field selection
   without FIX/SFTP parsers. Rejected alternative: regime-native structs in
-  the core — that couples the pure core to wire formats and duplicates
+  the core - that couples the pure core to wire formats and duplicates
   conversions.
 - **Rejection consumes a sequence number.** A rejected event's sequence
   shows as a gap to the regulator; re-using it would violate FIX sequence
@@ -175,12 +175,12 @@ Concepts, not signatures:
 - **Global transport flag + per-jurisdiction queues.** The router models a
   single transport-up/down decision per routing pass; every registered
   reporter stashes exactly one retry entry per down event. Per-reporter
-  transports with independent outage states were rejected as premature —
+  transports with independent outage states were rejected as premature -
   a jurisdiction is enabled per environment, and a down regime endpoint is
   an environmental condition.
 - **Durable state in `regulatory_report`, queue as backstop.** The pure
   core's retry queue is volatile by design; the durable truth is the report
-  row in `retrying` state plus the outbox relay — recovery re-enters the
+  row in `retrying` state plus the outbox relay - recovery re-enters the
   same idempotent path.
 - **Scope-mirror enforced, fail-closed.** No-set → deny; M2M token type
   never bypasses policy; forbid beats permit; tenant sets add role-keyed
@@ -223,7 +223,7 @@ Concepts, not signatures:
 
 - The HTTP surface carries health, `/openapi.json` and the Shield
   policy-admin API; the RFW admin pages declared in registration
-  (`sessions` — Reporters, `reports` — Report History) do not yet have
+  (`sessions` - Reporters, `reports` - Report History) do not yet have
   mounted data/UI handlers in this binary.
 - Regime transports (FIX session management, API clients, file/SFTP drops)
   are configuration surfaces (`regulatory_session.format`,
