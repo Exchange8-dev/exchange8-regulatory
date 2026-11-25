@@ -6,7 +6,8 @@
       "telemetry_property": {
         "slug": "regulatory",
         "name": "Exchange8:Regulatory Telemetry"
-      }
+      },
+      "exposure": "internal"
     }
   ]
 }
